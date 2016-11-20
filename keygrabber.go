@@ -5,7 +5,9 @@ import (
 	"github.com/BurntSushi/toml"
 	"log"
 	"os"
-  "http"
+  "io/ioutil"
+  "io"
+  "net/http"
 )
 
 type Config struct {
@@ -31,24 +33,44 @@ func ParseConfig(configFile string) (Config, error) {
   }
 }
 
-func GetFileFromURL(url string) (err) {
+func GetFileFromURL(url string) (string, error) {
   resp, err := http.Get(url)
-  defer resp.close()
+  defer resp.Body.Close()
+  if err != nil {
+    return "", err
+  }
 
   tempFile, err := ioutil.TempFile("", "keygrabber")
-  defer tempFile.close()
+  defer tempFile.Close()
+  if err != nil {
+    return "", err
+  }
 
-  
+  _, err = io.Copy(tempFile, resp.Body)
+  if err != nil {
+    return "", err
+  }
+
+  return tempFile.Name(), nil
+
 }
 
 
 func main() {
 	if len(os.Args) >= 2 {
-		fmt.Println("HI. I'm alive")
 
     config, err := ParseConfig(os.Args[1])
     if err == nil {
-      fmt.Printf("%+v\n", config)
+      filePath, err := GetFileFromURL(config.Baseurl + config.Keyfile)
+      if err != nil{
+        log.Fatal(err)
+      }
+      fmt.Println(filePath)
+      sigFilePath, err := GetFileFromURL(config.Baseurl + config.Sigfile)
+      if err != nil{
+        log.Fatal(err)
+      }
+      fmt.Println(sigFilePath)
     } else {
       log.Fatal(err)
     }
