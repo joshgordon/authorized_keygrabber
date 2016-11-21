@@ -71,6 +71,12 @@ func main() {
         log.Fatal(err)
       }
       fmt.Println(sigFilePath)
+      badSig := CheckSig(filePath, sigFilePath, config.TrustedSig)
+      if badSig == nil {
+        fmt.Println("Good sig!")
+      } else {
+        fmt.Println("Bad sig!")
+      }
     } else {
       log.Fatal(err)
     }
