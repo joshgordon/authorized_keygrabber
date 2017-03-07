@@ -94,6 +94,9 @@ func main() {
 			log.Fatal(err)
 		}
 		io.Copy(dst, src)
+
+		//set the permissions on the dest:
+		os.Chmod(os.Args[2], 0644)
 		//otherwise we just move on.
 	} else {
 		fmt.Println("Bad sig!")
